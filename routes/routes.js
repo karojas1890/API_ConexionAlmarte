@@ -5,4 +5,4 @@ const router = express.Router();
 
 router.use("/registro_civil", registroCivilService);
 
-export default router;
+export default router;1
