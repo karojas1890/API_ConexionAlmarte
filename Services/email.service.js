@@ -100,7 +100,7 @@ class EmailService {
                               </td>
                               <td style="padding-left: 12px;">
                                 <p style="margin: 0; color: #666666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Paciente</p>
-                                <p style="margin: 5px 0 0; color: #333333; font-size: 16px; font-weight: 600;">${this._escapeHtml(pacient)}</p>
+                                <p style="margin: 5px 0 0; color: #333333; font-size: 16px; font-weight: 600;">${pacient}</p>
                               </td>
                             </tr>
                           </table>
@@ -120,7 +120,7 @@ class EmailService {
                               </td>
                               <td style="padding-left: 12px;">
                                 <p style="margin: 0; color: #666666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Fecha y Hora</p>
-                                <p style="margin: 5px 0 0; color: #333333; font-size: 16px; font-weight: 600;">${this._escapeHtml(date)}</p>
+                                <p style="margin: 5px 0 0; color: #333333; font-size: 16px; font-weight: 600;">${date}</p>
                               </td>
                             </tr>
                           </table>
@@ -140,7 +140,7 @@ class EmailService {
                               </td>
                               <td style="padding-left: 12px;">
                                 <p style="margin: 0; color: #666666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Tipo de Servicio</p>
-                                <p style="margin: 5px 0 0; color: #333333; font-size: 16px; font-weight: 600;">${this._escapeHtml(nombreServicio)}</p>
+                                <p style="margin: 5px 0 0; color: #333333; font-size: 16px; font-weight: 600;">${nombreServicio}</p>
                               </td>
                             </tr>
                           </table>
@@ -258,13 +258,13 @@ SendNewUser(mail, username, password) {
                                                 <tr>
                                                     <td style="padding: 8px 0;">
                                                         <span style="color: #666666; font-size: 14px; display: block; margin-bottom: 5px;">Usuario:</span>
-                                                        <span style="color: #333333; font-size: 18px; font-weight: 600; display: block;">${this._escapeHtml(username)}</span>
+                                                        <span style="color: #333333; font-size: 18px; font-weight: 600; display: block;">${username}</span>
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td style="padding: 8px 0; border-top: 1px solid #e0e0e0;">
                                                         <span style="color: #666666; font-size: 14px; display: block; margin-bottom: 5px;">Contraseña:</span>
-                                                        <span style="color: #333333; font-size: 18px; font-weight: 600; display: block; font-family: 'Courier New', monospace;">${this._escapeHtml(password)}</span>
+                                                        <span style="color: #333333; font-size: 18px; font-weight: 600; display: block; font-family: 'Courier New', monospace;">${password}</span>
                                                     </td>
                                                 </tr>
                                             </table>
@@ -371,7 +371,7 @@ SendUsernameReminder(mail, uss) {
                                 </p>
 
                                 <div style="background-color: #f8fafa; border-left: 4px solid #5BA8A0; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                                    <p style="margin: 0; font-size: 18px; font-weight: 600; color: #333333;">👤 Usuario: ${this._escapeHtml(uss)}</p>
+                                    <p style="margin: 0; font-size: 18px; font-weight: 600; color: #333333;">👤 Usuario: ${uss}</p>
                                 </div>
 
                                 <table role="presentation" style="width: 100%; border-collapse: collapse; margin: 25px 0;">
@@ -421,10 +421,10 @@ SendUsernameReminder(mail, uss) {
       return false;
     }
   }
-SendVerificationCode(mail, username, code) {
+SendVerificationCode({mail, username, code}) {
     try {
       const subject = "Tu código de verificación - Conexión by Almarte";
-
+     
       const html = `
             <!DOCTYPE html>
             <html lang="es">
@@ -457,7 +457,7 @@ SendVerificationCode(mail, username, code) {
                         <tr>
                             <td style="padding: 40px 30px;">
                                 <p style="margin: 0 0 20px; color: #333333; font-size: 16px; line-height: 1.6;">
-                                    Hola <strong>${this._escapeHtml(username)}</strong>,
+                                    Hola <strong>${username}</strong>,
                                 </p>
                                 
                                 <p style="margin: 0 0 30px; color: #333333; font-size: 16px; line-height: 1.6;">
@@ -472,7 +472,7 @@ SendVerificationCode(mail, username, code) {
                                                 Tu Código de Verificación
                                             </p>
                                             <p style="margin: 0; color: #5BA8A0; font-size: 42px; font-weight: 700; letter-spacing: 8px; font-family: 'Courier New', monospace;">
-                                                ${this._escapeHtml(code)}
+                                                ${code}
                                             </p>
                                         </td>
                                     </tr>
@@ -571,7 +571,7 @@ SendVerificationCodeCredentials(mail, username, code) {
                         <tr>
                             <td style="padding: 40px 30px;">
                                 <p style="margin: 0 0 20px; color: #333333; font-size: 16px; line-height: 1.6;">
-                                    Hola <strong>${this._escapeHtml(username)}</strong>,
+                                    Hola <strong>${username}</strong>,
                                 </p>
                                 
                                 <p style="margin: 0 0 30px; color: #333333; font-size: 16px; line-height: 1.6;">
@@ -586,7 +586,7 @@ SendVerificationCodeCredentials(mail, username, code) {
                                                 Tu Código de Verificación
                                             </p>
                                             <p style="margin: 0; color: #5BA8A0; font-size: 42px; font-weight: 700; letter-spacing: 8px; font-family: 'Courier New', monospace;">
-                                                ${this._escapeHtml(code)}
+                                                ${code}
                                             </p>
                                         </td>
                                     </tr>
@@ -686,7 +686,7 @@ SendVerificationCodeCredentials(mail, username, code) {
                         <tr>
                             <td style="padding: 40px 30px;">
                                 <p style="margin: 0 0 30px; color: #333333; font-size: 16px; line-height: 1.6; text-align: center;">
-                                    Hola <strong style="color: #5BA8A0;">${this._escapeHtml(pacient)}</strong>, gracias por confiar en los servicios de <strong>AlmarteCR</strong>
+                                    Hola <strong style="color: #5BA8A0;">${pacient}</strong>, gracias por confiar en los servicios de <strong>AlmarteCR</strong>
                                 </p>
                                 
                                 <!-- Tarjeta de información de la cita -->
@@ -710,7 +710,7 @@ SendVerificationCodeCredentials(mail, username, code) {
                                                                 </td>
                                                                 <td style="padding-left: 12px;">
                                                                     <p style="margin: 0; color: #666666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Servicio</p>
-                                                                    <p style="margin: 5px 0 0; color: #333333; font-size: 16px; font-weight: 600;">${this._escapeHtml(nombreServicio)}</p>
+                                                                    <p style="margin: 5px 0 0; color: #333333; font-size: 16px; font-weight: 600;">${nombreServicio}</p>
                                                                 </td>
                                                             </tr>
                                                         </table>
@@ -731,7 +731,7 @@ SendVerificationCodeCredentials(mail, username, code) {
                                                                 </td>
                                                                 <td style="padding-left: 12px;">
                                                                     <p style="margin: 0; color: #666666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Fecha y Hora</p>
-                                                                    <p style="margin: 5px 0 0; color: #333333; font-size: 16px; font-weight: 600;">${this._escapeHtml(date)}</p>
+                                                                    <p style="margin: 5px 0 0; color: #333333; font-size: 16px; font-weight: 600;">${date}</p>
                                                                 </td>
                                                             </tr>
                                                         </table>
@@ -752,7 +752,7 @@ SendVerificationCodeCredentials(mail, username, code) {
                                                                 </td>
                                                                 <td style="padding-left: 12px;">
                                                                     <p style="margin: 0; color: #666666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Profesional</p>
-                                                                    <p style="margin: 5px 0 0; color: #333333; font-size: 16px; font-weight: 600;">Licda. ${this._escapeHtml(nombreTerapeuta)}</p>
+                                                                    <p style="margin: 5px 0 0; color: #333333; font-size: 16px; font-weight: 600;">Licda. ${nombreTerapeuta}</p>
                                                                 </td>
                                                             </tr>
                                                         </table>
@@ -808,17 +808,6 @@ SendVerificationCodeCredentials(mail, username, code) {
       console.error(e);
       return false;
     }
-  }
-
-  // 🔒 Seguridad
-  _escapeHtml(str) {
-    if (!str) return "";
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
   }
 }
 

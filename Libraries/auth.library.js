@@ -1,0 +1,219 @@
+import bcrypt from "bcrypt";
+import {sequelize} from "../Data/database.js";
+import { registrarAuditoria } from "../Services/auditoria.service.js";
+import emailService from "../Services/email.service.js";
+import { Usuario } from "../Models/Usuario.model.js";
+// --- Funciones Auxiliares ---
+function generateCode() {
+    return Math.floor(100000 + Math.random() * 900000); // código 6 dígitos
+}
+
+function formatUserResponse(userData) {
+    const { password, codigo6digitos, codigo_expiracion, ...publicData } = userData;
+    return publicData;
+}
+
+async function handleFailedLogin(user, dispositivo, ip) {
+    try {
+        const newAttempts = (user.intentos || 0) + 1;
+
+        await sequelize.query(
+            `UPDATE usuario SET intentos = :intentos WHERE idusuario = :id`,
+            { replacements: { intentos: newAttempts, id: user.idusuario } }
+        );
+
+        if (newAttempts >= 3) {
+            await sequelize.query(
+                `UPDATE usuario SET estado = 0 WHERE idusuario = :id`,
+                { replacements: { id: user.idusuario } }
+            );
+
+            // Registrar en auditoría usuario bloqueado
+            await registrarAuditoria({
+                identificacion_consultante: user.idusuario,
+                tipo_actividad: 7,
+                descripcion: "Usuario bloqueado por intentos fallidos",
+                exito: false,
+                ip,
+                dispositivo,
+            });
+        } else {
+            // Registrar intento fallido normal
+            await registrarAuditoria({
+                identificacion_consultante: user.idusuario,
+                tipo_actividad: 7,
+                descripcion: "Intento de login fallido",
+                exito: false,
+                ip,
+                dispositivo,
+            });
+        }
+    } catch (error) {
+        
+    }
+}
+
+
+export async function login(req, res) {
+    try {
+        const { usuario, password, ip, dispositivo } = req.body;
+
+        if (!usuario || !password) {
+            return res.status(400).json({ success: false, message: "Usuario y contraseña requeridos" });
+        }
+
+        // Buscar usuario
+        const sqlUser = `
+            SELECT idusuario, password, intentos, estado, tipo FROM usuario WHERE usuario=:usuario
+        `;
+        const [rows] = await sequelize.query(sqlUser, { replacements: { usuario } });
+        const user = rows?.[0];
+        
+        if (!user) {
+            return res.json({ success: false, message: "Usuario o contraseña incorrectos" });
+        }
+
+        if (user.estado !== 1) {
+            return res.json({ success: false, message: "Usuario bloqueado. Restablezca su contraseña." });
+        }
+
+        // Validar contraseña
+        const validPassword = await bcrypt.compare(password, user.password);
+
+        if (!validPassword) {
+            await handleFailedLogin(user, dispositivo, ip);
+            return res.json({ success: false, message: "Usuario o contraseña incorrectos" });
+        }
+
+        // Resetea los intentos al iniciar sesion
+        await sequelize.query(`UPDATE usuario SET intentos = 0 WHERE idusuario = :id`, {
+            replacements: { id: user.idusuario }
+        });
+
+        // Ejecuta la función para obtener datos completos
+        const sqlFunc = `SELECT * FROM loginUsuario(:usuario)`;
+        const [userDataRows] = await sequelize.query(sqlFunc, { replacements: { usuario } });
+        const userData = userDataRows?.[0];
+        //Variables de sesion
+         // Asumiendo que login ya validó al usuario y tienes userData
+        req.session.user = {
+            idusuario: userData.idusuario,
+            tipo: userData.tipo,
+            nombre: userData.nombre,
+            apellido1: userData.apellido1,          
+            identificacion_terapeuta: userData.identificacion_terapeuta,
+            terapeuta_nombre: userData.terapeuta_nombre,
+            terapeuta_apellido1: userData.terapeuta_apellido1,
+            terapeuta_codigoprofesional: userData.terapeuta_codigoprofesional,
+            correo: userData.correo,
+            correo_terapeuta: userData.correo_terapeuta
+        };
+        req.session.save(err => {
+            if (err) console.error("Error guardando sesión:", err);
+        });
+
+        if (!userData) {
+            return res.status(500).json({ success: false, message: "No se pudo cargar la información del usuario" });
+        }
+
+        // Registrar auditoría login exitoso
+        await registrarAuditoria({
+            identificacion_consultante: userData.idusuario,
+            tipo_actividad: 7,
+            descripcion: "Login exitoso",
+            exito: true,
+            ip,
+            dispositivo
+        });
+
+        // Generar código 6 dígitos
+        const verificationCode = generateCode();
+        const expirationTime = new Date(Date.now() + 60000);
+
+        await sequelize.query(`
+            UPDATE usuario 
+            SET codigo6digitos = :codigo, codigo_expiracion = :exp
+            WHERE idusuario = :id
+        `, {
+            replacements: {
+                codigo: verificationCode,
+                exp: expirationTime,
+                id: userData.idusuario
+            }
+        });
+        // Enviar email
+        await emailService.SendVerificationCode({
+            mail: userData.correo,
+            username: userData.nombre,
+            code: verificationCode
+        });
+
+        return res.json({
+            success: true,
+            message: "Login exitoso, código de verificación enviado",
+            data: formatUserResponse(userData)
+        });
+
+    } catch (error) {
+        console.error("LOGIN ERROR:", error);
+        return res.status(500).json({ success: false, message: "Error interno" });
+    }
+}
+
+
+export async function reenviarCodigo(req, res) {
+    try {
+        const {ip, dispositivo } = req.body;
+        const nombre = req.session.nombre;
+        const email = req.session.correo
+        if (!idusuario || !correo || !nombre) {
+            return res.status(400).json({
+                success: false,
+                message: "No hay datos de sesión, vuelva a iniciar sesión"
+            });
+        }
+
+        const newCode = generateCode();
+        const newExpiration = new Date(Date.now() + 60000);
+
+        //se actualiza usando modelo
+        await Usuario.update(
+            {
+                codigo6digitos: newCode,
+                codigo_expiracion: newExpiration
+            },
+            {
+                where: { idusuario }
+            }
+        );
+
+        // Enviar email
+        await emailService.SendVerificationCode({
+            mail: email,
+            username: nombre,
+            code: newCode
+        });
+
+        // Registrar auditoría
+        await registrarAuditoria({
+            identificacion_consultante: idusuario,
+            tipo_actividad: 7,
+            descripcion: "Reenvío de código de verificación",
+            exito: true,
+            ip,
+            dispositivo
+        });
+
+        return res.json({
+            success: true,
+            message: "Código reenviado exitosamente"
+        });
+
+    } catch (error) {
+        console.error("REENVIAR CÓDIGO ERROR:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error al reenviar código"
+        });
+    }
+}
