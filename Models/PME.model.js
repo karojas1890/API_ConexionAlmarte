@@ -53,6 +53,7 @@ export const PME = sequelize.define("PME", {
     }
 }, {
     tableName: "pme",
+    freezeTableName: true,
     timestamps: false
 });
 

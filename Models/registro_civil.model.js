@@ -71,6 +71,7 @@ export const RegistroCivil = sequelize.define("RegistroCivil", {
     defaultValue: true
   }
 }, {
-  tableName: "registro_civil", 
+  tableName: "registro_civil",
+  freezeTableName: true, 
   timestamps: false             
 });

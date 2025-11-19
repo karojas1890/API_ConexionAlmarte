@@ -17,5 +17,6 @@ export const ConductasAfrontamiento = sequelize.define("ConductasAfrontamiento",
   }
 }, {
   tableName: "conductasafrontamiento",
+  freezeTableName: true,
   timestamps: false
 });

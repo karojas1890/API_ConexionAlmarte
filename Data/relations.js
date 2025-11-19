@@ -120,7 +120,7 @@ Consultante.hasMany(RegistroAplicacionRecomendacion, {foreignKey: "identificacio
 RegistroAplicacionRecomendacion.belongsTo(Consultante, {foreignKey: "identificacion",as: "consultante_registro"});
 
 
-Tarjeta.belongsTo(Usuario, { foreignKey: "idusuario", as: "usuario" });
+Tarjeta.belongsTo(Usuario, { foreignKey: "id_usuario", as: "usuario" });
 Usuario.hasMany(Tarjeta, { foreignKey: "id_usuario", as: "tarjetas" });
 
 

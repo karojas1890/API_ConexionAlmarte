@@ -55,5 +55,6 @@ export const Diario = sequelize.define("Diario", {
   },
 }, {
   tableName: "diario",
+  freezeTableName: true,
   timestamps: false
 });

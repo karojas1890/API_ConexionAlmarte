@@ -31,6 +31,7 @@ export const RecomendacionPaciente = sequelize.define("RecomendacionPaciente", {
   }
 }, {
   tableName: "recomendacionpaciente",
+  freezeTableName: true,
   timestamps: false
 });
 

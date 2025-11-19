@@ -22,6 +22,7 @@ export const RestriccionPassword = sequelize.define("RestriccionPassword", {
     }
 }, {
     tableName: "restriccion_password",
+    freezeTableName: true,
     timestamps: false 
 });
 

@@ -36,5 +36,6 @@ export const Disponibilidad = sequelize.define("Disponibilidad", {
   }
 }, {
   tableName: "disponibilidad",
+  freezeTableName: true,
   timestamps: false
 });

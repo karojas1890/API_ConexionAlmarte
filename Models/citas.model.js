@@ -42,5 +42,6 @@ export const Citas = sequelize.define("Citas", {
   }
 }, {
   tableName: "citas",
+  freezeTableName: true,
   timestamps: false
 });

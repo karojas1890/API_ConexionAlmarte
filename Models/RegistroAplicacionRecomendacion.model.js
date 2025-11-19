@@ -51,6 +51,7 @@ export const RegistroAplicacionRecomendacion = sequelize.define("RegistroAplicac
   }
 }, {
   tableName: "registroaplicacionrecomendacion",
+  freezeTableName: true,
   timestamps: false
 });
 

@@ -36,6 +36,7 @@ export const Terapeuta = sequelize.define(
   },
   {
     tableName: "terapeuta",
+    freezeTableName: true,
     timestamps: false
   }
 );

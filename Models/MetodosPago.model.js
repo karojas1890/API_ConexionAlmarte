@@ -13,5 +13,6 @@ export const MetodosPago = sequelize.define("MetodosPago", {
   }
 }, {
   tableName: "metodospago",
+  freezeTableName: true,
   timestamps: false
 });

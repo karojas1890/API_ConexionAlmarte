@@ -29,5 +29,6 @@ export const LocalidadBarrio = sequelize.define("LocalidadBarrio", {
   }
 }, {
   tableName: "localidad_barrio",
+  freezeTableName: true,
   timestamps: false
 });

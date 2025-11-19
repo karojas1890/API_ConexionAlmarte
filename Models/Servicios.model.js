@@ -29,6 +29,7 @@ export const Servicios = sequelize.define("Servicios", {
   }
 }, {
   tableName: "servicios",
+  freezeTableName: true,
   timestamps: false
 });
 

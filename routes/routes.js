@@ -6,6 +6,10 @@ import credentials from "../Services/credential.service.js";
 import diario from "../Services/diary.service.js";
 import Disponibilidad from "../Services/Disponibilidad.service.js";
 import geolocalizacion from "../Services/geolocalizacion.service.js";
+import pacientes from "../Services/pacientes.service.js";
+import perfil from "../Services/perfil.service.js";
+import tarjeta from "../Services/cards.service.js";
+
 const router = express.Router();
 
 
@@ -18,5 +22,8 @@ router.use("/Credenciales", credentials);
 router.use("/Diario", diario);
 router.use("/Disponibilidad", Disponibilidad);
 router.use("/Geolocalizacion", geolocalizacion);
+router.use("/Pacientes", pacientes);
+router.use("/Perfil", perfil);
+router.use("/Tarjetas", tarjeta);
 
 export default router;

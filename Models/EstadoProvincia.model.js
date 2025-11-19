@@ -29,5 +29,6 @@ export const EstadoProvincia = sequelize.define("EstadoProvincia", {
   }
 }, {
   tableName: "estado_provincia",
+  freezeTableName: true,
   timestamps: false
 });

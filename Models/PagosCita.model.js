@@ -31,5 +31,6 @@ export const PagosCita = sequelize.define("PagosCita", {
   }
 }, {
   tableName: "pagoscita",
+  freezeTableName: true,
   timestamps: false
 });

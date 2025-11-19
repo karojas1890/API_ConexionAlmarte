@@ -41,6 +41,7 @@ export const Tarjeta = sequelize.define(
   },
   {
     tableName: "tarjetas",
+    freezeTableName: true,
     timestamps: false,
   }
 );

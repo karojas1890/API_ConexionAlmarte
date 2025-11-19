@@ -17,5 +17,6 @@ export const Emociones = sequelize.define("Emociones", {
   }
 }, {
   tableName: "emociones",
+  freezeTableName: true,
   timestamps: false
 });

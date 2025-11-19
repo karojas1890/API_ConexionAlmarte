@@ -17,5 +17,6 @@ export const CategoriasRecomendaciones = sequelize.define("CategoriasRecomendaci
   }
 }, {
   tableName: "categoriasrecomendaciones",
+  freezeTableName: true,
   timestamps: false
 });

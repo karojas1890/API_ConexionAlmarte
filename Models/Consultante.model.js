@@ -72,5 +72,6 @@ export const Consultante = sequelize.define("Consultante", {
   }
 }, {
   tableName: "consultante",
+  freezeTableName: true,
   timestamps: false
 });

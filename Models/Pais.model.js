@@ -27,6 +27,7 @@ export const Pais = sequelize.define("Pais", {
     }
 }, {
     tableName: "pais",
+    freezeTableName: true,
     timestamps: false  
 });
 

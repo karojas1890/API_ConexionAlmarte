@@ -29,6 +29,7 @@ export const RecomendacionesTerapeuticas = sequelize.define("RecomendacionesTera
   }
 }, {
   tableName: "recomendacionesterapeuticas",
+  freezeTableName: true,
   timestamps: false
 });
  

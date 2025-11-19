@@ -29,5 +29,6 @@ export const CiudadMunicipio = sequelize.define("CiudadMunicipio", {
   }
 }, {
   tableName: "ciudad_municipio",
+  freezeTableName: true,
   timestamps: false 
 });

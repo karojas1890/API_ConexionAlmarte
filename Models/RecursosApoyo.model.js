@@ -31,6 +31,7 @@ export const RecursosApoyo = sequelize.define("RecursosApoyo", {
   }
 }, {
   tableName: "recursosapoyo",
+  freezeTableName: true,
   timestamps: false
 });
 
