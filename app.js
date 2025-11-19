@@ -1,5 +1,5 @@
 import express from "express";
-import dotenv from "dotenv";
+
 import session from "express-session";
 
 import router from "./routes/routes.js";
@@ -8,7 +8,7 @@ import { applyRelations } from "./Data/relations.js";
 import emailService from "./Services/email.service.js";
 
 // Cargar variables de entorno
-dotenv.config();
+
 
 const app = express();
 app.use(express.json());
