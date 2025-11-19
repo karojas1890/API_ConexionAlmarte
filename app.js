@@ -1,5 +1,5 @@
 import express from "express";
-import router from "./Routes/routes.js";
+import router from "./routes/routes.js";
 import { conectarDB } from "./Data/database.js";
 import { applyRelations } from "./Data/relations.js";
 import emailService from "./Services/email.service.js";
