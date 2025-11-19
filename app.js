@@ -13,10 +13,10 @@ import emailService from "./Services/email.service.js";
 const app = express();
 app.use(express.json());
 
-// Configuración de sesión (solo si la necesitas localmente)
+
 app.use(session({
     name: "sessionId",
-    secret: process.env.SESSION_SECRET || "clave_local_temporal", 
+    secret: process.env.SESSION_SECRET, 
     resave: false,
     saveUninitialized: false,
     cookie: {
