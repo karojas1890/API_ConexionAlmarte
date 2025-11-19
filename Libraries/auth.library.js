@@ -149,6 +149,7 @@ export async function login(req, res) {
         });
 
         return res.json({
+            
             success: true,
             message: "Login exitoso, código de verificación enviado",
             data: formatUserResponse(userData)
