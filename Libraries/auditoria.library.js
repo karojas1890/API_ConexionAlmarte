@@ -31,7 +31,7 @@ export async function obtenerAuditorias(req, res) {
 
 export async function obtenerAuditoriaUsuario(req, res) {
     try {
-        const idusuario  = req.body;
+        const {idusuario}  = req.body;
 
         if (!idusuario) {
             return res.status(400).json({ error: "Debe enviar el idusuario" });
