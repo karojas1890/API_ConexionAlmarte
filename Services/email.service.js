@@ -1,7 +1,5 @@
 // services/email.service.js
 import sgMail from "@sendgrid/mail";
-import dotenv from "dotenv";
-dotenv.config();
 
 class EmailService {
   constructor() {
