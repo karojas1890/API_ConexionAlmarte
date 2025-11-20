@@ -1,11 +1,11 @@
-import db from "../Data/database.js";
+import {sequelize}from "../Data/database.js";
 import bcrypt from "bcrypt";
 import emailService from "../Services/email.service.js";
 import { RandomAlias, RandomPassword } from "../Utils/authHelpers.js";
 import mail from "@sendgrid/mail";
 
 export async function crearUsuarioService(data) {
-    const t = await db.transaction(); // iniciar transaccion
+    const t = await sequelize.transaction(); // iniciar transaccion
     
     try {
         const { identificacion,
@@ -36,7 +36,7 @@ export async function crearUsuarioService(data) {
         await emailService.SendNewUser(mail, username, password);
 
         // Ejecuta la funcion PostgreSQL  insertUsuario devuelve idUsuario
-        const result = await db.query(
+        const result = await sequelize.query(
             `SELECT insertUsuario(:usuario, :password, NULL, 1) AS "idUsuario"`,
             {
                 replacements: { usuario: alias, password: hashPassword },
