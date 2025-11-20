@@ -11,12 +11,11 @@ export async function crearUsuarioService(req, res) {
         const body = req.body;
         
         console.log("Body completo recibido:", JSON.stringify(body, null, 2)); // ✅ Debug completo
-        
+        const nombre = body.nombre;
+        const apellido1 = body.apellido1 || body.primerApellido; // ✅ Acepta ambos
+        const apellido2 = body.apellido2 || body.segundoApellido;
         const { 
             identificacion,
-            nombre, 
-            apellido1,
-            apellido2,
             telefono,
             correo,
             provincia,
