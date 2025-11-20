@@ -220,9 +220,8 @@ export async function reenviarCodigo(req, res) {
 }
 export async function verificarCodigo(req, res) {
     try {
-        const { codigo } = req.body; // código ingresado por el usuario
-        const idusuario = req.session.idusuario;
-        const rol = req.session.rol;
+        const { codigo,idusuario, rol } = req.body; // código ingresado por el usuario
+     
 
         if (!idusuario) {
             return res.status(401).json({
