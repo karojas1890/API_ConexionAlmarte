@@ -77,7 +77,7 @@ export async function crearUsuarioService(req, res) {
         await sequelize.query(
             `CALL insertConsultante(
                 :identificacion,
-                :idUsuario,
+                :idusuario,
                 :nombre,
                 :apellido1,
                 :apellido2,
