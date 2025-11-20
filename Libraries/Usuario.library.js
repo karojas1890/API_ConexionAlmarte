@@ -1,16 +1,17 @@
-import {sequelize}from "../Data/database.js";
+import {sequelize} from "../Data/database.js";
 import bcrypt from "bcrypt";
 import emailService from "../Services/email.service.js";
 import { RandomAlias, RandomPassword } from "../Utils/authHelpers.js";
-import mail from "@sendgrid/mail";
 
-export async function crearUsuarioService(data) {
-    const t = await sequelize.transaction(); // iniciar transaccion
+export async function crearUsuarioService(body) {
+    const t = await sequelize.transaction();
     
     try {
-        const { identificacion,
-            nombre,primerApellido,
-            segundoApellido,
+        const { 
+            identificacion,
+            nombre, 
+            apellido1,  // Cambié primerApellido por apellido1
+            apellido2,  // Cambié segundoApellido por apellido2
             telefono,
             correo,
             provincia,
@@ -21,26 +22,33 @@ export async function crearUsuarioService(data) {
             edad,
             ocupacion,
             lugarTrabajo
-        } = data;
+        } = body;
 
-        if (!nombre || !primerApellido) {
+        // Validaciones básicas
+        if (!nombre || !apellido1) {  // Usando los nuevos nombres
             throw new Error("Nombre y apellido obligatorios");
         }
 
-        // Genera usuario y contrasena temporal
-        const username = await RandomAlias(nombre, primerApellido);
-        const password = RandomPassword();
-        const hashPassword = await bcrypt.hash(plainPassword, 10);
-        mail=correo
-        // Enviar correo
-        await emailService.SendNewUser(mail, username, password);
+        if (!correo) {
+            throw new Error("Correo electrónico obligatorio");
+        }
 
-        // Ejecuta la funcion PostgreSQL  insertUsuario devuelve idUsuario
-        const result = await sequelize.query(
+        // Genera usuario y contraseña temporal
+        const username = await RandomAlias(nombre, apellido1);  // Usando apellido1
+        const plainPassword = RandomPassword();
+        const hashPassword = await bcrypt.hash(plainPassword, 10);
+
+        // Enviar correo
+        await emailService.SendNewUser(correo, username, plainPassword);
+
+        // Ejecuta la función PostgreSQL insertUsuario
+        const [result] = await sequelize.query(
             `SELECT insertUsuario(:usuario, :password, NULL, 1) AS "idUsuario"`,
             {
-                replacements: { usuario: alias, password: hashPassword },
-                type: db.QueryTypes.SELECT,
+                replacements: { 
+                    usuario: username,
+                    password: hashPassword 
+                },
                 transaction: t
             }
         );
@@ -48,7 +56,7 @@ export async function crearUsuarioService(data) {
         const idUsuario = result[0].idUsuario;
 
         // Procedimiento almacenado para consultante
-        await db.query(
+        await sequelize.query(
             `CALL insertConsultante(
                 :identificacion,
                 :idUsuario,
@@ -70,21 +78,21 @@ export async function crearUsuarioService(data) {
             )`,
             {
                 replacements: {
-                    identificacion: identificacion,
-                    idUsuario:idUsuario,
-                    nombre:nombre,
-                    apellido1: primerApellido,
-                    apellido2: segundoApellido,
-                    telefono: telefono,
-                    correo:correo,
-                    provincia: provincia,
-                    canton: canton,
-                    distrito: distrito,
-                    direccion: direccion,
-                    fechaNacimiento: fechaNacimiento,
-                    edad: edad,
-                    ocupacion: ocupacion,
-                    lugarTrabajo: lugarTrabajo,
+                    identificacion: identificacion || null,
+                    idUsuario: idUsuario,
+                    nombre: nombre,
+                    apellido1: apellido1,  // Usando apellido1
+                    apellido2: apellido2 || null,  // Usando apellido2
+                    telefono: telefono || null,
+                    correo: correo,
+                    provincia: provincia || null,
+                    canton: canton || null,
+                    distrito: distrito || null,
+                    direccion: direccion || null,
+                    fechaNacimiento: fechaNacimiento || null,
+                    edad: edad || null,
+                    ocupacion: ocupacion || null,
+                    lugarTrabajo: lugarTrabajo || null,
                     tipo: 1,
                     urlImagen: null
                 },
@@ -93,10 +101,21 @@ export async function crearUsuarioService(data) {
         );
 
         await t.commit();
-        return { message: "Usuario creado exitosamente" };
+        
+        return { 
+            success: true,
+            message: "Usuario creado exitosamente",
+            data: {
+                idUsuario,
+                username,
+                email: correo
+            }
+        };
 
     } catch (error) {
         await t.rollback();
-        throw error;
+        console.error("Error en crearUsuarioService:", error);
+        
+        throw new Error(error.message || "Error al crear el usuario");
     }
 }

@@ -156,7 +156,7 @@ export async function login(req, res) {
                 id: userData.idusuario
             }
         });
-        
+        console.log(correoDestino,nombreDestino)
         // Enviar email
         await emailService.SendVerificationCode({
             mail: correoDestino,
