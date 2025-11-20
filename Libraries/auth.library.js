@@ -96,6 +96,11 @@ export async function login(req, res) {
         const userData = userDataRows?.[0];
         //Variables de sesion
      
+        console.log("Tipo usuario:", userData.tipo);
+        console.log("Correo consultante:", userData.consultante_correo);
+        console.log("Correo terapeuta:", userData.terapeuta_correo);
+        console.log("Nombre:", userData.nombre);
+        console.log("Terapeuta nombre:", userData.terapeuta_nombre);
         req.session.user = {
             idusuario: userData.idusuario,
             cedula: userData.identificacion_consultante,
