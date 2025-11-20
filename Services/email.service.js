@@ -482,7 +482,7 @@ SendVerificationCode({mail, username, code}) {
                                         ⏱️ Información importante:
                                     </p>
                                     <ul style="margin: 0; padding-left: 20px; color: #856404; font-size: 14px; line-height: 1.6;">
-                                        <li>Este código es válido por <strong>10 minutos</strong></li>
+                                        <li>Este código es válido por <strong>1 minuto</strong></li>
                                         <li>Solo puede ser utilizado una vez</li>
                                         <li>No compartas este código con nadie</li>
                                     </ul>
