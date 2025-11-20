@@ -143,7 +143,7 @@ export async function ObtenerServicios(req, res) {
 // Obtener Citas Pendientes
 export async function obtenerCitasPendientes(req, res) {
   try {
-    const { idUsuario }= req.body
+    const idUsuario = req.query.idUsuario;
     if (!idUsuario) {
       return res.status(401).json({ error: "No hay usuario en sesión" });
     }
