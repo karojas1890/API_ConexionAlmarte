@@ -10,7 +10,7 @@ import pacientes from "../Services/pacientes.service.js";
 import perfil from "../Services/perfil.service.js";
 import tarjeta from "../Services/cards.service.js";
 import herramientas from "../Services/herramientas.service.js";
-
+import usuario from "../Services/usuario.service.js";
 const router = express.Router();
 
 
@@ -26,5 +26,6 @@ router.use("/Pacientes", pacientes);
 router.use("/Perfil", perfil);
 router.use("/Tarjetas", tarjeta);
 router.use("/Herramientas", herramientas);
+router.use("/Usuario", usuario);
 
 export default router;
