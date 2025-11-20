@@ -95,7 +95,7 @@ export async function login(req, res) {
         const [userDataRows] = await sequelize.query(sqlFunc, { replacements: { usuario } });
         const userData = userDataRows?.[0];
         //Variables de sesion
-         // Asumiendo que login ya validó al usuario y tienes userData
+     
         req.session.user = {
             idusuario: userData.idusuario,
             cedula: userData.identificacion_consultante,
@@ -116,7 +116,16 @@ export async function login(req, res) {
         if (!userData) {
             return res.status(500).json({ success: false, message: "No se pudo cargar la información del usuario" });
         }
+        let correoDestino;
+        let nombreDestino;
 
+       if (userData.tipo === 1) { // Consultante
+            correoDestino = userData.correo;
+            nombreDestino = userData.nombre;
+        } else if (userData.tipo === 2) { // Terapeuta
+             correoDestino = userData.correo_terapeuta;
+            nombreDestino = userData.terapeuta_nombre;
+        }
         // Registrar auditoría login exitoso
         await registrarAuditoria({
             identificacion_consultante: userData.idusuario,
@@ -142,10 +151,11 @@ export async function login(req, res) {
                 id: userData.idusuario
             }
         });
+        
         // Enviar email
         await emailService.SendVerificationCode({
-            mail: userData.correo,
-            username: userData.nombre,
+            mail: correoDestino,
+            username: nombreDestino,
             code: verificationCode
         });
 

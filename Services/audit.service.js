@@ -13,7 +13,7 @@ router.get("/auditoria", async (req, res) => {
   }
 });
 
-router.post("/audit", async (req, res) => {
+router.get("/audit", async (req, res) => {
   try {
     await obtenerAuditoriaUsuario(req, res);
   } catch (error) {
