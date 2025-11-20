@@ -58,7 +58,7 @@ export async function GuardarPerfil(req, res) {
 
   try {
     let data = req.body;
-    console.log("Datos recibidos:", data);
+    
 
     // Convertir fecha
     if (data.fechanacimiento) {

@@ -52,23 +52,30 @@ async function handleFailedLogin(user, dispositivo, ip) {
         
     }
 }
-
+ 
+import bcrypt from "bcrypt";
+import { sequelize } from "../Data/database.js";
+import emailService from "../Services/email.service.js";
+import { generateCode } from "../Utils/authHelpers.js";
 
 export async function login(req, res) {
     try {
         const { usuario, password, ip, dispositivo } = req.body;
 
+        // Validar campos obligatorios
         if (!usuario || !password) {
             return res.status(400).json({ success: false, message: "Usuario y contraseña requeridos" });
         }
 
-        // Buscar usuario
+        // Buscar usuario en DB
         const sqlUser = `
-            SELECT idusuario, password, intentos, estado, tipo FROM usuario WHERE usuario=:usuario
+            SELECT idusuario, password, intentos, estado, tipo 
+            FROM usuario 
+            WHERE usuario=:usuario
         `;
         const [rows] = await sequelize.query(sqlUser, { replacements: { usuario } });
         const user = rows?.[0];
-        
+
         if (!user) {
             return res.json({ success: false, message: "Usuario o contraseña incorrectos" });
         }
@@ -79,58 +86,61 @@ export async function login(req, res) {
 
         // Validar contraseña
         const validPassword = await bcrypt.compare(password, user.password);
-
         if (!validPassword) {
-            await handleFailedLogin(user, dispositivo, ip);
+            // Puedes llamar aquí a tu función de auditoría de login fallido
             return res.json({ success: false, message: "Usuario o contraseña incorrectos" });
         }
 
-        // Resetea los intentos al iniciar sesion
-        await sequelize.query(`UPDATE usuario SET intentos = 0 WHERE idusuario = :id`, {
-            replacements: { id: user.idusuario }
-        });
+        // Resetear intentos
+        await sequelize.query(
+            `UPDATE usuario SET intentos = 0 WHERE idusuario = :id`,
+            { replacements: { id: user.idusuario } }
+        );
 
-        // Ejecuta la función para obtener datos completos
+        // Obtener datos completos del usuario
         const sqlFunc = `SELECT * FROM loginUsuario(:usuario)`;
         const [userDataRows] = await sequelize.query(sqlFunc, { replacements: { usuario } });
         const userData = userDataRows?.[0];
-        //Variables de sesion
-     
-        console.log("Tipo usuario:", userData.tipo);
-        console.log("Correo consultante:", userData.consultante_correo);
-        console.log("Correo terapeuta:", userData.terapeuta_correo);
-        console.log("Nombre:", userData.nombre);
-        console.log("Terapeuta nombre:", userData.terapeuta_nombre);
-        req.session.user = {
-            idusuario: userData.idusuario,
-            cedula: userData.identificacion_consultante,
-            tipo: userData.tipo,
-            nombre: userData.nombre,
-            apellido1: userData.apellido1,          
-            cedula_terapeuta: userData.identificacion_terapeuta,
-            terapeuta_nombre: userData.terapeuta_nombre,
-            terapeuta_apellido1: userData.terapeuta_apellido1,
-            terapeuta_codigoprofesional: userData.terapeuta_codigoprofesional,
-            correo: userData.consultante_correo,
-            correo_terapeuta: userData.terapeuta_correo
-        };
-        req.session.save(err => {
-            if (err) console.error("Error guardando sesión:", err);
-        });
 
         if (!userData) {
             return res.status(500).json({ success: false, message: "No se pudo cargar la información del usuario" });
         }
-        let correoDestino;
-        let nombreDestino;
 
-       if (userData.tipo === 1) { // Consultante
-            correoDestino = userData.correo;
-            nombreDestino = userData.nombre;
+        // Variables de sesión
+        req.session.user = {
+            idusuario: userData.idusuario,
+            tipo: userData.tipo,
+            nombre: userData.nombre || "",
+            apellido1: userData.apellido1 || "",
+            cedula: userData.identificacion_consultante || "",
+            correo: userData.consultante_correo || "",
+            cedula_terapeuta: userData.identificacion_terapeuta || "",
+            terapeuta_nombre: userData.terapeuta_nombre || "",
+            terapeuta_apellido1: userData.terapeuta_apellido1 || "",
+            correo_terapeuta: userData.terapeuta_correo || ""
+        };
+
+        await new Promise((resolve, reject) => {
+            req.session.save(err => (err ? reject(err) : resolve()));
+        });
+
+        // Determinar correo y nombre para enviar código
+        let correoDestino = "";
+        let nombreDestino = "";
+        console.log (userData.tipo)
+        if (userData.tipo === 1) { // Consultante
+            correoDestino = userData.consultante_correo || "";
+            nombreDestino = userData.nombre || "";
         } else if (userData.tipo === 2) { // Terapeuta
-             correoDestino = userData.correo_terapeuta;
-            nombreDestino = userData.terapeuta_nombre;
+            correoDestino = userData.terapeuta_correo || "";
+            nombreDestino = userData.terapeuta_nombre || "";
         }
+
+        if (!correoDestino || !nombreDestino) {
+            console.error("Datos de correo incompletos:", correoDestino, nombreDestino);
+            return res.status(500).json({ success: false, message: "Datos de usuario incompletos para enviar código" });
+        }
+
         // Registrar auditoría login exitoso
         await registrarAuditoria({
             identificacion_consultante: userData.idusuario,
@@ -141,22 +151,17 @@ export async function login(req, res) {
             dispositivo
         });
 
-        // Generar código 6 dígitos
+        // Generar código de verificación de 6 dígitos
         const verificationCode = generateCode();
         const expirationTime = new Date(Date.now() + 60000);
 
-        await sequelize.query(`
-            UPDATE usuario 
-            SET codigo6digitos = :codigo, codigo_expiracion = :exp
-            WHERE idusuario = :id
-        `, {
-            replacements: {
-                codigo: verificationCode,
-                exp: expirationTime,
-                id: userData.idusuario
-            }
-        });
-        console.log(correoDestino,nombreDestino)
+        await sequelize.query(
+            `UPDATE usuario 
+             SET codigo6digitos = :codigo, codigo_expiracion = :exp
+             WHERE idusuario = :id`,
+            { replacements: { codigo: verificationCode, exp: expirationTime, id: userData.idusuario } }
+        );
+
         // Enviar email
         await emailService.SendVerificationCode({
             mail: correoDestino,
@@ -164,11 +169,17 @@ export async function login(req, res) {
             code: verificationCode
         });
 
+        // Responder al cliente
         return res.json({
-            
             success: true,
             message: "Login exitoso, código de verificación enviado",
-            data: formatUserResponse(userData)
+            data: {
+                idusuario: userData.idusuario,
+                tipo: userData.tipo,
+                nombre: userData.nombre,
+                apellido1: userData.apellido1,
+                correo: correoDestino
+            }
         });
 
     } catch (error) {
@@ -176,7 +187,6 @@ export async function login(req, res) {
         return res.status(500).json({ success: false, message: "Error interno" });
     }
 }
-
 
 export async function reenviarCodigo(req, res) {
     try {
