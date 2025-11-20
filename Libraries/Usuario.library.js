@@ -5,10 +5,23 @@ import { RandomAlias, RandomPassword } from "../Utils/authHelpers.js";
 import mail from "@sendgrid/mail";
 
 export async function crearUsuarioService(data) {
-    const t = await db.transaction(); // iniciar transacción
+    const t = await db.transaction(); // iniciar transaccion
     
     try {
-        const { nombre, primerApellido, correo } = data;
+        const { identificacion,
+            nombre,primerApellido,
+            segundoApellido,
+            telefono,
+            correo,
+            provincia,
+            canton,
+            distrito,
+            direccion,
+            fechaNacimiento,
+            edad,
+            ocupacion,
+            lugarTrabajo
+        } = data;
 
         if (!nombre || !primerApellido) {
             throw new Error("Nombre y apellido obligatorios");
@@ -57,21 +70,21 @@ export async function crearUsuarioService(data) {
             )`,
             {
                 replacements: {
-                    identificacion: data.identificacion,
-                    idUsuario,
-                    nombre,
+                    identificacion: identificacion,
+                    idUsuario:idUsuario,
+                    nombre:nombre,
                     apellido1: primerApellido,
-                    apellido2: data.segundoApellido,
-                    telefono: data.telefono,
-                    correo,
-                    provincia: data.provincia,
-                    canton: data.canton,
-                    distrito: data.distrito,
-                    direccion: data.direccion,
-                    fechaNacimiento: data.fechaNacimiento,
-                    edad: data.edad,
-                    ocupacion: data.ocupacion,
-                    lugarTrabajo: data.lugarTrabajo,
+                    apellido2: segundoApellido,
+                    telefono: telefono,
+                    correo:correo,
+                    provincia: provincia,
+                    canton: canton,
+                    distrito: distrito,
+                    direccion: direccion,
+                    fechaNacimiento: fechaNacimiento,
+                    edad: edad,
+                    ocupacion: ocupacion,
+                    lugarTrabajo: lugarTrabajo,
                     tipo: 1,
                     urlImagen: null
                 },
