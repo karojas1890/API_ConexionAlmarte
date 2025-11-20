@@ -16,7 +16,6 @@ const router = express.Router();
 
 
 router.use("/auth", login);
-
 router.use("/audit", auditoria);
 router.use("/Citas", citas);
 router.use("/Credenciales", credentials);

@@ -218,3 +218,85 @@ export async function reenviarCodigo(req, res) {
         });
     }
 }
+export async function verificarCodigo(req, res) {
+    try {
+        const { codigo } = req.body; // código ingresado por el usuario
+        const idusuario = req.session.idusuario;
+        const rol = req.session.rol;
+
+        if (!idusuario) {
+            return res.status(401).json({
+                success: false,
+                message: "No hay sesión activa. Por favor, inicie sesión."
+            });
+        }
+
+        // Obtener usuario y su código de verificación
+        const usuario = await Usuario.findOne({
+            where: { idusuario },
+            attributes: ["codigo6digitos", "codigo_expiracion"]
+        });
+
+        if (!usuario) {
+            return res.status(404).json({ success: false, message: "Usuario no encontrado." });
+        }
+
+        // Verificar expiración
+        if (new Date() > usuario.codigo_expiracion) {
+            return res.status(400).json({ success: false, message: "El código ha expirado." });
+        }
+
+        // Verificar código
+        if (codigo !== usuario.codigo6digitos) {
+            return res.status(400).json({ success: false, message: "Código incorrecto." });
+        }
+
+        // Resetear código y expiración
+        await Usuario.update(
+            { codigo6digitos: null, codigo_expiracion: null },
+            { where: { idusuario } }
+        );
+
+        // Registrar auditoría
+        await registrarAuditoria({
+            identificacion_consultante: idusuario,
+            tipo_actividad: 8,
+            descripcion: "Código verificado exitosamente",
+            exito: true,
+            ip: req.body.ip || req.ip,
+            dispositivo: req.body.dispositivo || "Desconocido"
+        });
+
+        // Redirección según rol
+        switch (rol) {
+            case 1:
+                return res.json({ success: true, redirect: "/dashboard_consultante" });
+            case 2:
+                return res.json({ success: true, redirect: "/dashboard" });
+            case 3:
+            case 4:
+                return res.json({ success: true, redirect: "/quien_eres" });
+            default:
+                return res.json({ success: true, redirect: "/" });
+        }
+
+    } catch (error) {
+        console.error("VERIFICAR CÓDIGO ERROR:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error al verificar código"
+        });
+    }
+}
+
+export function logout(req, res) {
+    // Limpiar la sesion
+    req.session.destroy(err => {
+        if (err) {
+            console.error("Error cerrando sesión:", err);
+            return res.status(500).send("Error al cerrar sesión");
+        }
+        // Redirigir al login
+        return res.status(200).json({ success: true, message: "Serrando sesion." });
+    });
+}

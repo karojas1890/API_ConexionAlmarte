@@ -64,7 +64,7 @@ export const Consultante = sequelize.define("Consultante", {
   },
   tipo: {
     type: DataTypes.INTEGER,
-    allowNull: true // default not explicit in original model
+    allowNull: true 
   },
   urlimagen: {
     type: DataTypes.STRING,

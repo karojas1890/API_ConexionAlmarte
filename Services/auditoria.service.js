@@ -1,16 +1,6 @@
 import {Auditoria} from "../Models/auditoria.model.js";
 import axios from "axios";
 
-/**
-@param {object} data 
-@param {string} data.identificacion_consultante
-@param {number} data.tipo_actividad
-@param {string} data.descripcion
-@param {string|null} data.codigo
-@param {object|null} data.datos_modificados
-@param {boolean} data.exito
-@param {string} data.ip 
-*/
 
 export async function registrarAuditoria({
     identificacion_consultante,

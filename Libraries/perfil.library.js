@@ -1,9 +1,9 @@
 import {sequelize} from "../Data/database.js";
 import { QueryTypes } from "sequelize";
 
-// =============================
-//  GET /perfil/datos
-// =============================
+
+
+
 export async function ObtenerPerfil(req, res) {
   try {
     const id_usuario  = req.query.id_usuario 
