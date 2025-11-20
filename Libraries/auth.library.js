@@ -52,11 +52,7 @@ async function handleFailedLogin(user, dispositivo, ip) {
         
     }
 }
- 
-import bcrypt from "bcrypt";
-import { sequelize } from "../Data/database.js";
-import emailService from "../Services/email.service.js";
-import { generateCode } from "../Utils/authHelpers.js";
+
 
 export async function login(req, res) {
     try {
