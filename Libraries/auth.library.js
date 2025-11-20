@@ -86,6 +86,10 @@ export async function login(req, res) {
             // Puedes llamar aquí a tu función de auditoría de login fallido
             return res.json({ success: false, message: "Usuario o contraseña incorrectos" });
         }
+        if (!validPassword) {
+            await handleFailedLogin(user, dispositivo, ip);
+            return res.json({ success: false, message: "Usuario o contraseña incorrectos" });
+        }
 
         // Resetear intentos
         await sequelize.query(
@@ -123,7 +127,7 @@ export async function login(req, res) {
         // Determinar correo y nombre para enviar código
         let correoDestino = "";
         let nombreDestino = "";
-        console.log (userData.tipo)
+
         if (userData.tipo === 1) { // Consultante
             correoDestino = userData.consultante_correo || "";
             nombreDestino = userData.nombre || "";
@@ -167,15 +171,10 @@ export async function login(req, res) {
 
         // Responder al cliente
         return res.json({
+            
             success: true,
             message: "Login exitoso, código de verificación enviado",
-            data: {
-                idusuario: userData.idusuario,
-                tipo: userData.tipo,
-                nombre: userData.nombre,
-                apellido1: userData.apellido1,
-                correo: correoDestino
-            }
+            data: formatUserResponse(userData)
         });
 
     } catch (error) {
@@ -183,6 +182,7 @@ export async function login(req, res) {
         return res.status(500).json({ success: false, message: "Error interno" });
     }
 }
+
 
 export async function reenviarCodigo(req, res) {
     try {
