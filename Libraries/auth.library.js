@@ -102,12 +102,12 @@ export async function login(req, res) {
             tipo: userData.tipo,
             nombre: userData.nombre,
             apellido1: userData.apellido1,          
-            identificacion_terapeuta: userData.identificacion_terapeuta,
+            cedula_terapeuta: userData.identificacion_terapeuta,
             terapeuta_nombre: userData.terapeuta_nombre,
             terapeuta_apellido1: userData.terapeuta_apellido1,
             terapeuta_codigoprofesional: userData.terapeuta_codigoprofesional,
             correo: userData.consultante_correo,
-            correo_terapeuta: userData.correo_terapeuta
+            correo_terapeuta: userData.terapeuta_correo
         };
         req.session.save(err => {
             if (err) console.error("Error guardando sesión:", err);
