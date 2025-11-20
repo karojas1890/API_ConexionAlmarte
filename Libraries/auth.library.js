@@ -106,7 +106,7 @@ export async function login(req, res) {
             terapeuta_nombre: userData.terapeuta_nombre,
             terapeuta_apellido1: userData.terapeuta_apellido1,
             terapeuta_codigoprofesional: userData.terapeuta_codigoprofesional,
-            correo: userData.correo,
+            correo: userData.consultante_correo,
             correo_terapeuta: userData.correo_terapeuta
         };
         req.session.save(err => {
