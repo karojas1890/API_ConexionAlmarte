@@ -98,6 +98,7 @@ export async function login(req, res) {
          // Asumiendo que login ya validó al usuario y tienes userData
         req.session.user = {
             idusuario: userData.idusuario,
+            cedula: userData.identificacion_consultante,
             tipo: userData.tipo,
             nombre: userData.nombre,
             apellido1: userData.apellido1,          
