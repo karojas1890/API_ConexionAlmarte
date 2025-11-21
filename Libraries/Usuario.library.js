@@ -60,7 +60,7 @@ export async function crearUsuarioService(req, res) {
 
         // Ejecuta la función PostgreSQL insertUsuario
         const [result] = await sequelize.query(
-            `SELECT insertUsuario(:usuario, :password, NULL, 1) AS "idUsuario"`,
+            `SELECT insertUsuario(:usuario, :password, NULL, 1) AS "idusuario"`,
             {
                 replacements: { 
                     usuario: username,
