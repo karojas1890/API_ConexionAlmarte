@@ -107,137 +107,135 @@ export async function ValidarUsuarioRecovery(req, res) {
 }
 
 
+// Valida las preguntas de seguridad usando las variables req.session.recovery_*
 export async function ValidateSecurityQuestions(req, res) {
   try {
     const { question1, answer1, tipouss } = req.body;
-    const tipoUsuario = req.session.user?.tipo;
 
-    if (!req.session.user) {
-      return res.status(401).json({
-        success: false,
-        message: "Sesión expirada o usuario no autenticado."
-      });
-    }
-
-    // ID del consultante o terapeuta extraído de sesión
-    const identificacion =
-      tipoUsuario === 2
-        ? req.session.user.cedula_terapeuta
-        : req.session.user.cedula_consultante || req.session.user.cedula;
-
+  
+    const sessionType = req.session.recovery_tipo_usuario;
+    const tipoUsuario = tipouss ? String(tipouss) : (sessionType === "terapeuta" ? "2" : "1");
+    
+    // Identificación proveniente de la sesión de recuperación
+    const identificacion = req.session.recovery_identificacion;
+    console.log(sessionType,tipoUsuario,identificacion)
     if (!identificacion) {
-      return res.status(400).json({
-        success: false,
-        message: "Identificación no disponible en sesión."
-      });
+      return res.status(400).json({ success: false, message: "Identificación no disponible en sesión" });
     }
 
-    // Inicializar contador de intentos
+    // Inicializar contador de intentos si no existe
     if (!req.session.failed_attempts) req.session.failed_attempts = 0;
+
+    // Helpers
+    const normalizeText = (txt) => txt?.toString().trim().toLowerCase();
+    const normalizeDate = (date) => {
+      if (!date) return null;
+      const d = new Date(date);
+      return isNaN(d) ? null : d.toISOString().split("T")[0];
+    };
 
     let isValid = false;
 
-    
-
-  
-    if (tipoUsuario === 1 || tipoUsuario === 3 || tipoUsuario === 4) {
+    // --------------------------
+    // Validaciones para CONSULTANTE
+    // --------------------------
+    if (sessionType === "consultante" || tipoUsuario === "1" || tipoUsuario === "3" || tipoUsuario === "4") {
       if (question1 === "id_digits") {
         isValid = answer1 === identificacion.slice(-3);
 
       } else if (question1 === "birthdate") {
-        isValid = normalizeDate(answer1) === normalizeDate(req.session.user.birthdate);
+        // comparamos con recovery_date guardado en sesión
+        isValid = normalizeDate(answer1) === normalizeDate(req.session.recovery_date);
 
       } else if (question1 === "canton") {
-        isValid = normalizeText(answer1) === normalizeText(req.session.user.canton);
+        isValid = normalizeText(answer1) === normalizeText(req.session.recovery_canton);
 
       } else if (question1 === "phone_digits") {
-        isValid = answer1 === String(req.session.user.telefono).slice(-3);
+        isValid = answer1 === String(req.session.recovery_phone).slice(-3);
       }
 
-    
-    } else if (tipoUsuario === 2) {
+    // --------------------------
+    // Validaciones para TERAPEUTA
+    // --------------------------
+    } else if (sessionType === "terapeuta" || tipoUsuario === "2") {
       if (question1 === "id_digits") {
         isValid = answer1 === identificacion.slice(-3);
 
       } else if (question1 === "M_last_name") {
-        isValid =
-          normalizeText(answer1) ===
-          normalizeText(req.session.user.terapeuta_apellido1);
+        isValid = normalizeText(answer1) === normalizeText(req.session.recovery_apellido);
 
       } else if (question1 === "code") {
-        isValid = answer1 === String(req.session.user.codigo_profesional).slice(-3);
+        isValid = answer1 === String(req.session.recovery_codigoprofesional).slice(-3);
       }
 
     } else {
-      return res.status(400).json({
-        success: false,
-        message: "Tipo de usuario no válido."
-      });
+      return res.status(400).json({ success: false, message: "Tipo de usuario no válido" });
     }
 
-    
+    // --------------------------
+    // Si es inválido: incrementar intentos y responder
+    // --------------------------
     if (!isValid) {
-      req.session.failed_attempts++;
+      req.session.failed_attempts = (req.session.failed_attempts || 0) + 1;
 
       if (req.session.failed_attempts >= 3) {
-        return res.json({
-          success: false,
-          blocked: true,
-          message: "Máximo de intentos alcanzado. Espera 24h."
-        });
+        // aquí podrías guardar un flag adicional si quieres bloquear en BD
+        return res.json({ success: false, blocked: true, message: "Máximo de intentos alcanzado. Espera 24h." });
       }
 
       return res.json({
         success: false,
         blocked: false,
         attempts: req.session.failed_attempts,
-        message: "Respuesta incorrecta."
+        message: "Respuesta incorrecta"
       });
     }
 
- 
+    // --------------------------
+    // Si es válido: generar código, guardarlo y enviar correo
+    // --------------------------
     req.session.security_verified = true;
     delete req.session.failed_attempts;
 
-    const usuarioDB = await Usuario.findByPk(req.session.user.idusuario);
-
-    if (!usuarioDB) {
-      return res.status(404).json({
-        success: false,
-        message: "Usuario no encontrado en la base de datos."
-      });
+    // Obtener usuario en BD por id guardado en sesión recovery_idusuario
+    const usuarioId = req.session.recovery_idusuario;
+    if (!usuarioId) {
+      return res.status(400).json({ success: false, message: "ID de usuario no disponible en sesión." });
     }
 
-    // Genera un codigo de 6 dígitos
+    const usuario = await Usuario.findByPk(usuarioId);
+    if (!usuario) {
+      return res.status(404).json({ success: false, message: "Usuario no encontrado en la base de datos." });
+    }
+
+    // Generar código de 6 dígitos y guardarlo
     const code = String(Math.floor(Math.random() * 1000000)).padStart(6, "0");
-    usuarioDB.codigo6digitos = code;
-    await usuarioDB.save();
+    usuario.codigo6digitos = code;
+    await usuario.save();
 
-    // Seleccionar correo correcto
-    const correoDestino =
-      tipoUsuario === 2
-        ? req.session.user.correo_terapeuta
-        : req.session.user.correo;
+    // Elegir correo destino según lo que tengas en sesión recovery_correo
+    const correoDestino = req.session.recovery_correo;
+    const username = req.session.recovery_nombre || usuario.usuario || "";
 
+    if (!correoDestino) {
+      return res.status(400).json({ success: false, message: "Correo no disponible en sesión." });
+    }
+
+    // Enviar correo 
     await emailService.SendVerificationCodeCredentials({
       email: correoDestino,
-      username: req.session.user.nombre,
+      username,
       code
     });
 
-    return res.json({
-      success: true,
-      message: "Respuesta correcta. Código enviado al correo registrado."
-    });
+    return res.json({ success: true, message: "Respuesta correcta. Código enviado al correo." });
 
   } catch (err) {
     console.error("Error ValidateSecurityQuestions:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Error interno del servidor"
-    });
+    return res.status(500).json({ success: false, message: "Error interno del servidor" });
   }
 }
+
 
 // Valida el codigo 
 export async function ValidateCode(req, res) {

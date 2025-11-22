@@ -336,7 +336,7 @@ async SendNewUser(mail, username, password) {
     }
   }
 
-SendUsernameReminder(mail, uss) {
+async SendUsernameReminder(mail, uss) {
     try {
       const subject = "Recuperación de usuario - Conexión by Almarte";
 
@@ -416,7 +416,12 @@ SendUsernameReminder(mail, uss) {
             </body>
             </html>`;
 
-      setImmediate(() => this.sendEmail(mail, subject, html));
+      const result = await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: mail,
+      subject,
+      html
+    });
 
       return true;
     } catch (e) {
@@ -424,7 +429,7 @@ SendUsernameReminder(mail, uss) {
       return false;
     }
   }
-SendVerificationCode({mail, username, code}) {
+async SendVerificationCode({mail, username, code}) {
     try {
       const subject = "Tu código de verificación - Conexión by Almarte";
      
@@ -529,7 +534,12 @@ SendVerificationCode({mail, username, code}) {
         </body>
         </html>`;
 
-      setImmediate(() => this.sendEmail(mail, subject, html));
+      const result = await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: mail,
+      subject,
+      html
+    });
 
       return true;
     } catch (e) {
@@ -538,7 +548,7 @@ SendVerificationCode({mail, username, code}) {
     }
   }
 
-SendVerificationCodeCredentials(mail, username, code) {
+async SendVerificationCodeCredentials(mail, username, code) {
     try {
       const subject = "Tu código de verificación - Conexión by Almarte";
 
@@ -643,7 +653,12 @@ SendVerificationCodeCredentials(mail, username, code) {
          </body>
         </html>`;
 
-      setImmediate(() => this.sendEmail(mail, subject, html));
+      const result = await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: mail,
+      subject,
+      html
+    });
 
       return true;
     } catch (e) {
@@ -653,7 +668,7 @@ SendVerificationCodeCredentials(mail, username, code) {
   }
 
   //Email para el paciente
-  SendNewAppointmentPacient(mail, pacient, date, nombreServicio, nombreTerapeuta) {
+  async SendNewAppointmentPacient(mail, pacient, date, nombreServicio, nombreTerapeuta) {
     try {
       const subject = "Confirmación de tu cita - Conexión by Almarte";
 
@@ -803,8 +818,12 @@ SendVerificationCodeCredentials(mail, username, code) {
         </table>
     </body>
     </html>`;
-
-      setImmediate(() => this.sendEmail(mail, subject, html));
+await transporter.sendMail({
+  from: process.env.EMAIL_USER,
+  to: mail,
+  subject,
+  html
+});
 
       return true;
     } catch (e) {
