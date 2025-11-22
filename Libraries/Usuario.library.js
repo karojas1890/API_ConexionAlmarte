@@ -28,22 +28,18 @@ export async function crearUsuarioService(req, res) {
             lugarTrabajo
         } = body; // ✅ Ahora body está definido
 
-        // ✅ Debug de campos específicos
-        console.log("Nombre recibido:", nombre);
-        console.log("Apellido1 recibido:", apellido1);
-        console.log("Apellido2 recibido:", apellido2);
-        console.log("Correo recibido:", correo);
+      
 
         // Validaciones básicas
         if (!nombre || !apellido1) {
-            console.log("❌ ERROR: Nombre o apellido1 están vacíos");
+            console.log("ERROR: Nombre o apellido1 están vacíos");
             console.log("Nombre:", nombre);
             console.log("Apellido1:", apellido1);
             throw new Error("Nombre y apellido obligatorios");
         }
 
         if (!correo) {
-            console.log("❌ ERROR: Correo está vacío");
+            console.log("ERROR: Correo está vacío");
             throw new Error("Correo electrónico obligatorio");
         }
 
@@ -52,11 +48,7 @@ export async function crearUsuarioService(req, res) {
         const plainPassword = RandomPassword();
         const hashPassword = await bcrypt.hash(plainPassword, 10);
 
-        console.log("Usuario generado:", username);
-        console.log("Contraseña generada:", plainPassword);
-
-        // Enviar correo
-        await emailService.SendNewUser(correo, username, plainPassword);
+        
 
         // Ejecuta la función PostgreSQL insertUsuario
         const [result] = await sequelize.query(
@@ -70,7 +62,7 @@ export async function crearUsuarioService(req, res) {
             }
         );
 
-        const idUsuario = result[0].idUsuario;
+        const idUsuario = result[0].idusuario;
         console.log("ID Usuario creado:", idUsuario);
 
         // Procedimiento almacenado para consultante
@@ -97,7 +89,7 @@ export async function crearUsuarioService(req, res) {
             {
                 replacements: {
                     identificacion: identificacion || null,
-                    idUsuario: idUsuario,
+                    idusuario: idUsuario,
                     nombre: nombre,
                     apellido1: apellido1,
                     apellido2: apellido2 || null,
@@ -120,6 +112,9 @@ export async function crearUsuarioService(req, res) {
 
         await t.commit();
         
+        // Enviar correo
+        await emailService.SendNewUser(correo, username, plainPassword);
+
         console.log("Usuario creado exitosamente");
         
         return res.status(201).json({ 

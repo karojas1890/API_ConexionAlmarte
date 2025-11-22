@@ -12,7 +12,7 @@ export async function RandomAlias(nombre, apellido) {
     const baseAlias = `${inicial}${primerApellido}`;
 
     const ultimo = await Usuario.findOne({
-        order: [["idUsuario", "DESC"]],
+        order: [["idusuario", "DESC"]],
         attributes: ["usuario"]
     });
 

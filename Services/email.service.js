@@ -206,7 +206,7 @@ class EmailService {
       return false;
     }
   }
-SendNewUser(mail, username, password) {
+async SendNewUser(mail, username, password) {
     try {
       const subject = "Bienvenido a Conexión by Almarte - Tus credenciales de acceso";
 
@@ -322,7 +322,12 @@ SendNewUser(mail, username, password) {
     </body>
     </html>`;
 
-      setImmediate(() => this.sendEmail(mail, subject, html));
+     const result = await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: mail,
+      subject,
+      html
+    });
 
       return true;
     } catch (e) {
