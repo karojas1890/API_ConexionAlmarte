@@ -114,6 +114,7 @@ export async function login(req, res) {
             apellido1: userData.apellido1 || "",
             cedula: userData.identificacion_consultante || "",
             correo: userData.consultante_correo || "",
+            cedula_consultante: userData.cedula_consultante||"",
             cedula_terapeuta: userData.identificacion_terapeuta || "",
             terapeuta_nombre: userData.terapeuta_nombre || "",
             terapeuta_apellido1: userData.terapeuta_apellido1 || "",

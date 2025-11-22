@@ -63,7 +63,7 @@ export async function crearUsuarioService(req, res) {
         );
 
         const idUsuario = result[0].idusuario;
-        console.log("ID Usuario creado:", idUsuario);
+       
 
         // Procedimiento almacenado para consultante
         await sequelize.query(

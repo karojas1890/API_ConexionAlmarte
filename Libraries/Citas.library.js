@@ -47,12 +47,16 @@ export async function crearCita(req, res) {
     const nombreservicio = servicio.nombreservicio;
 
     // Tomar datos de sesión
-    const correoTerapeuta = req.session.correo_terapeuta;
-    const paciente = req.session.nombre;
+    const correoTerapeuta = req.session.user?.correo_terapeuta;
+    const paciente = req.session.user?.nombre;
     const fecha = `${disponibilidad.fecha} de ${disponibilidad.horainicio} a ${disponibilidad.horafin}`;
-    const terapeutaNombre = req.session.terapeuta_nombre;
-    const terapeutaApellido = req.session.terapeuta_apellido1;
-    const correoPaciente = req.session.correo;
+   const terapeutaNombre = req.session.user?.terapeuta_nombre;
+   const terapeutaApellido = req.session.user?.terapeuta_apellido1;
+   const correoPaciente = req.session.user?.correo;
+
+
+
+
 
     // Enviar correos
     await emailService.SendNewAppointment({

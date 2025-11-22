@@ -107,63 +107,143 @@ export async function ValidarUsuarioRecovery(req, res) {
 }
 
 
-// Valida las  preguntas de seguridad 
 export async function ValidateSecurityQuestions(req, res) {
   try {
     const { question1, answer1, tipouss } = req.body;
-    const tipo = tipouss;
-    const identificacion = req.session.recovery_identificacion;
-    if (!identificacion) return res.status(401).json({ success: false, message: "Sesión expirada" });
+    const tipoUsuario = req.session.user?.tipo;
 
-    if (!req.session.failed_attempts) req.session.failed_attempts = 0;
-    let isValid = false;
-
-    if (tipo === "1") { // Consultante
-      if (question1 === "id_digits") isValid = answer1 === identificacion.slice(-3);
-      else if (question1 === "birthdate") isValid = normalizeDate(answer1) === normalizeDate(req.session.recovery_date);
-      else if (question1 === "canton") isValid = normalizeText(answer1) === normalizeText(req.session.recovery_canton);
-      else if (question1 === "phone_digits") isValid = answer1 === String(req.session.recovery_phone).slice(-3);
-    } else if (tipo === "2") { // Terapeuta
-      if (question1 === "id_digits") isValid = answer1 === identificacion.slice(-3);
-      else if (question1 === "M_last_name") isValid = answer1.toLowerCase() === req.session.recovery_apellido.toLowerCase();
-      else if (question1 === "code") isValid = answer1 === String(req.session.recovery_codigoprofesional).slice(-3);
-    } else return res.status(400).json({ success: false, message: "Tipo de usuario no válido" });
-
-    if (isValid) {
-      req.session.security_verified = true;
-      delete req.session.failed_attempts;
-
-      const usuario = await Usuario.findByPk(req.session.recovery_idusuario);
-      const code = String(Math.floor(Math.random() * 1000000)).padStart(6, "0");
-      usuario.codigo6digitos = code;
-      await usuario.save();
-
-      await emailService.SendVerificationCodeCredentials({
-        email: req.session.recovery_correo,
-        username: req.session.recovery_nombre,
-        code
+    if (!req.session.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Sesión expirada o usuario no autenticado."
       });
-
-      return res.json({ success: true, message: "Respuesta correcta. Código enviado al correo." });
     }
 
-    req.session.failed_attempts += 1;
-    if (req.session.failed_attempts >= 3)
-      return res.json({ success: false, blocked: true, message: "Máximo de intentos alcanzado. Espera 24h." });
+    // ID del consultante o terapeuta extraído de sesión
+    const identificacion =
+      tipoUsuario === 2
+        ? req.session.user.cedula_terapeuta
+        : req.session.user.cedula_consultante || req.session.user.cedula;
 
-    return res.json({ success: false, blocked: false, attempts: req.session.failed_attempts, message: "Respuesta incorrecta" });
+    if (!identificacion) {
+      return res.status(400).json({
+        success: false,
+        message: "Identificación no disponible en sesión."
+      });
+    }
+
+    // Inicializar contador de intentos
+    if (!req.session.failed_attempts) req.session.failed_attempts = 0;
+
+    let isValid = false;
+
+    
+
+  
+    if (tipoUsuario === 1 || tipoUsuario === 3 || tipoUsuario === 4) {
+      if (question1 === "id_digits") {
+        isValid = answer1 === identificacion.slice(-3);
+
+      } else if (question1 === "birthdate") {
+        isValid = normalizeDate(answer1) === normalizeDate(req.session.user.birthdate);
+
+      } else if (question1 === "canton") {
+        isValid = normalizeText(answer1) === normalizeText(req.session.user.canton);
+
+      } else if (question1 === "phone_digits") {
+        isValid = answer1 === String(req.session.user.telefono).slice(-3);
+      }
+
+    
+    } else if (tipoUsuario === 2) {
+      if (question1 === "id_digits") {
+        isValid = answer1 === identificacion.slice(-3);
+
+      } else if (question1 === "M_last_name") {
+        isValid =
+          normalizeText(answer1) ===
+          normalizeText(req.session.user.terapeuta_apellido1);
+
+      } else if (question1 === "code") {
+        isValid = answer1 === String(req.session.user.codigo_profesional).slice(-3);
+      }
+
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Tipo de usuario no válido."
+      });
+    }
+
+    
+    if (!isValid) {
+      req.session.failed_attempts++;
+
+      if (req.session.failed_attempts >= 3) {
+        return res.json({
+          success: false,
+          blocked: true,
+          message: "Máximo de intentos alcanzado. Espera 24h."
+        });
+      }
+
+      return res.json({
+        success: false,
+        blocked: false,
+        attempts: req.session.failed_attempts,
+        message: "Respuesta incorrecta."
+      });
+    }
+
+ 
+    req.session.security_verified = true;
+    delete req.session.failed_attempts;
+
+    const usuarioDB = await Usuario.findByPk(req.session.user.idusuario);
+
+    if (!usuarioDB) {
+      return res.status(404).json({
+        success: false,
+        message: "Usuario no encontrado en la base de datos."
+      });
+    }
+
+    // Genera un codigo de 6 dígitos
+    const code = String(Math.floor(Math.random() * 1000000)).padStart(6, "0");
+    usuarioDB.codigo6digitos = code;
+    await usuarioDB.save();
+
+    // Seleccionar correo correcto
+    const correoDestino =
+      tipoUsuario === 2
+        ? req.session.user.correo_terapeuta
+        : req.session.user.correo;
+
+    await emailService.SendVerificationCodeCredentials({
+      email: correoDestino,
+      username: req.session.user.nombre,
+      code
+    });
+
+    return res.json({
+      success: true,
+      message: "Respuesta correcta. Código enviado al correo registrado."
+    });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Error interno del servidor" });
+    console.error("Error ValidateSecurityQuestions:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Error interno del servidor"
+    });
   }
 }
 
 // Valida el codigo 
 export async function ValidateCode(req, res) {
   try {
-    const { code } = req.body;
-    const idusuario = req.session.recovery_idusuario;
-    const tipo_recuperacion = req.session.recovery_tipo;
+    const { code,idusuario,tipo_recuperacion} = req.body;
+    
 
     const usuario = await Usuario.findByPk(idusuario);
     if (!usuario) return res.json({ success: false, message: "Usuario no encontrado" });
@@ -200,8 +280,7 @@ export async function ValidateCode(req, res) {
 // Actualiza la contrasena
 export async function UpdatePassword(req, res) {
   try {
-    if (!req.session.code_verified) return res.status(403).json({ success: false, message: "No autorizado" });
-
+   
     const { new_password } = req.body;
     if (!new_password || new_password.length < 6)
       return res.json({ success: false, message: "La contraseña debe tener al menos 6 caracteres" });
