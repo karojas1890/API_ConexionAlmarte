@@ -1,5 +1,7 @@
 import { Usuario } from "../Models/Usuario.model.js";
 
+
+
 export function RandomPassword() {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
     return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");

@@ -322,13 +322,7 @@ async SendNewUser(mail, username, password) {
     </body>
     </html>`;
 
-     const result = await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: mail,
-      subject,
-      html
-    });
-
+     setImmediate(() => this.sendEmail(mail, subject, html));
       return true;
     } catch (e) {
       console.error(e);
@@ -336,7 +330,7 @@ async SendNewUser(mail, username, password) {
     }
   }
 
-async SendUsernameReminder(mail, uss) {
+async SendUsernameReminder({mail, uss}) {
     try {
       const subject = "Recuperación de usuario - Conexión by Almarte";
 
@@ -416,12 +410,7 @@ async SendUsernameReminder(mail, uss) {
             </body>
             </html>`;
 
-      const result = await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: mail,
-      subject,
-      html
-    });
+      setImmediate(() => this.sendEmail(mail, subject, html));
 
       return true;
     } catch (e) {
@@ -534,13 +523,7 @@ async SendVerificationCode({mail, username, code}) {
         </body>
         </html>`;
 
-      const result = await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: mail,
-      subject,
-      html
-    });
-
+       setImmediate(() => this.sendEmail(mail, subject, html));
       return true;
     } catch (e) {
       console.error(e);
@@ -548,8 +531,10 @@ async SendVerificationCode({mail, username, code}) {
     }
   }
 
-async SendVerificationCodeCredentials(mail, username, code) {
+async SendVerificationCodeCredentials({mail, username, code}) {
     try {
+
+     console.log(code,username)
       const subject = "Tu código de verificación - Conexión by Almarte";
 
       const html = `
@@ -653,13 +638,7 @@ async SendVerificationCodeCredentials(mail, username, code) {
          </body>
         </html>`;
 
-      const result = await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: mail,
-      subject,
-      html
-    });
-
+      setImmediate(() => this.sendEmail(mail, subject, html));
       return true;
     } catch (e) {
       console.error(e);
@@ -818,13 +797,7 @@ async SendVerificationCodeCredentials(mail, username, code) {
         </table>
     </body>
     </html>`;
-await transporter.sendMail({
-  from: process.env.EMAIL_USER,
-  to: mail,
-  subject,
-  html
-});
-
+ setImmediate(() => this.sendEmail(mail, subject, html));
       return true;
     } catch (e) {
       console.error(e);

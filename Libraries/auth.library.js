@@ -243,7 +243,7 @@ export async function reenviarCodigo(req, res) {
 }
 export async function verificarCodigo(req, res) {
     try {
-        const { codigo,idusuario, rol } = req.body; // código ingresado por el usuario
+        const { codigo,idusuario, rol } = req.body; // codigo ingresado por el usuario
      
 
         if (!idusuario) {

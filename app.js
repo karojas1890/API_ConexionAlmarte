@@ -14,6 +14,7 @@ const app = express();
 
 app.use(cors({
     origin: "https://conexionalmarteparte2.onrender.com", 
+    origin:"http://127.0.0.1:5000",
     credentials: true,                                     
 }));
 
