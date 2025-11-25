@@ -288,11 +288,11 @@ export async function ValidateCode(req, res) {
 export async function UpdatePassword(req, res) {
   try {
    
-    const { new_password } = req.body;
+    const { new_password,idusuario } = req.body;
     if (!new_password || new_password.length < 6)
       return res.json({ success: false, message: "La contraseña debe tener al menos 6 caracteres" });
 
-    const idusuario = req.session.recovery_idusuario;
+    
     const usuario = await Usuario.findByPk(idusuario);
     if (!usuario) return res.json({ success: false, message: "Usuario no encontrado" });
 
