@@ -30,7 +30,11 @@ export const Usuario = sequelize.define(
     },
     intentos: {
       type: DataTypes.INTEGER
-    }
+    },
+    codigo_expiracion: {
+  type: DataTypes.DATE,
+  allowNull: true
+  },
   },
   {
     tableName: "usuario",

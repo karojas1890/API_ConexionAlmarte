@@ -45,8 +45,8 @@ export async function ValidarUsuarioRecovery(req, res) {
         });
       }
 
-
-      return res.json({ success: true, message: "Usuario validado correctamente", tipo: 1 });
+  
+      return res.json({ success: true, message: "Usuario validado correctamente", tipo: 1,id:consultante.idusuario,correo:consultante.correo});
     }
 
     // --- Revisar si es terapeuta ---
@@ -67,8 +67,8 @@ export async function ValidarUsuarioRecovery(req, res) {
       }
 
       
-
-      return res.json({ success: true, message: "Usuario validado correctamente", tipo: 2 });
+      
+      return res.json({ success: true, message: "Usuario validado correctamente", tipo: 2,id:terapeuta.idusuario,correo:terapeuta.correo});
     }
 
     //No existe 
@@ -85,7 +85,7 @@ export async function ValidarUsuarioRecovery(req, res) {
 export async function ValidateSecurityQuestions(req, res) {
   try {
     const { question1, answer1, tipouss, correo, idusuario } = req.body;
-
+    
     // Validaciones de entrada
     if (!question1 || !answer1 || !tipouss || !correo || !idusuario) {
       return res
@@ -166,7 +166,7 @@ export async function ValidateSecurityQuestions(req, res) {
 
     // Generar código de 6 dígitos
      const codigo6digitos = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log('Código generado:', codigo6digitos); // Debug
+   
 
     // Establecer expiración (10 minutos)
     const expirationTime = new Date();
@@ -192,13 +192,6 @@ export async function ValidateSecurityQuestions(req, res) {
       }
     }
     
-    console.log('Username determinado:', nombre); // Debug
-    console.log('Correo:', correo); // Debug
-
-    // Asegurarse de que el emailService esté inicializado
-    if (!emailService.initialized) {
-      emailService.init();
-    }
 
     // VERIFICAR QUE TODOS LOS PARÁMETROS ESTÉN DEFINIDOS
     if (!correo || !nombre || !codigo6digitos) {
@@ -214,11 +207,11 @@ export async function ValidateSecurityQuestions(req, res) {
     }
 
     // Enviar correo con el código de verificación
-     await emailService.SendVerificationCodeCredentials({ 
-      mail: correo,
-      username: nombre,  
-      code: codigo6digitos
-    });
+    //  await emailService.SendVerificationCodeCredentials({ 
+    //   mail: correo,
+    //   username: nombre,  
+    //   code: codigo6digitos
+    // });
       
     
 
@@ -246,11 +239,12 @@ export async function ValidateSecurityQuestions(req, res) {
 export async function ValidateCode(req, res) {
   try {
     const { code,idusuario,tipo_recuperacion,correo} = req.body;
+  
         const usuario = await Usuario.findOne({
             where: { idusuario },
-            attributes: ["idusuario","usuario","codigo6digitos", "codigo_expiracion"]
+            attributes: ["idusuario","codigo6digitos","usuario", "codigo_expiracion"]
         });
-
+     
     if (!usuario) return res.json({ success: false, message: "Usuario no encontrado" });
   
 
@@ -262,7 +256,7 @@ export async function ValidateCode(req, res) {
 
     if (tipo_recuperacion === "1") {
       req.session.code_verified = true;
-      return res.json({ success: true, typw: "1", redirect_url: "/restablecer_contra" });
+      return res.json({ success: true, type: "1"});
     } else if (tipo_recuperacion === "2") {
       req.session.code = code;
       await emailService.SendUsernameReminder({ mail: correo, uss: usuario.usuario });
@@ -274,7 +268,7 @@ export async function ValidateCode(req, res) {
         datos_modificados: { hora: new Date() },
         exito: true
       });
-      return res.json({ success: true, typw: "2", redirect_url: "/login", message: `Nombre de usuario enviado a ${req.session.recovery_correo}` });
+      return res.json({ success: true, type: "2", message: "Correcto" });
     }
 
     return res.json({ success: false, message: "Tipo de recuperación inválido" });
