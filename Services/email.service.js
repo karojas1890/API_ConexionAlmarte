@@ -43,7 +43,7 @@ class EmailService {
   }
 
   //Email para el terapeuta
-  SendNewAppointment(mail, pacient, date, nombreServicio) {
+  SendNewAppointment({mail, pacient, date, nombreServicio}) {
     try {
       const subject = "Tienes una nueva cita - Conexión Almarte";
 
@@ -534,7 +534,7 @@ async SendVerificationCode({mail, username, code}) {
 async SendVerificationCodeCredentials({mail, username, code}) {
     try {
 
-     console.log(code,username)
+   
       const subject = "Tu código de verificación - Conexión by Almarte";
 
       const html = `
@@ -647,7 +647,7 @@ async SendVerificationCodeCredentials({mail, username, code}) {
   }
 
   //Email para el paciente
-  async SendNewAppointmentPacient(mail, pacient, date, nombreServicio, nombreTerapeuta) {
+  async SendNewAppointmentPacient({mail, pacient, date, nombreServicio, nombreTerapeuta}) {
     try {
       const subject = "Confirmación de tu cita - Conexión by Almarte";
 

@@ -97,7 +97,6 @@ export async function ObtenerRecomendaciones(req, res) {
     res.status(500).json({ error: "Error interno del servidor" });
   }
 }
-
 export async function GuardarEvento(req, res) {
   const t = await sequelize.transaction();
   try {
@@ -131,18 +130,18 @@ export async function GuardarEvento(req, res) {
     );
 
     await registrarAuditoria({
-      identificacion_consultante: data.idusuario, // <-- corregido
+      identificacion_consultante: data.idusuario,
       tipo_actividad: 4,
       descripcion: "Registro de Diario",
-      datos_modificados: { servicio: data.tiporegistro || 0, hora: new Date() },
-      exito: true
-    });
+      entidad_afectada: "diario",
+      idafectado: data.idusuario
+    }, t);
 
     await t.commit();
-    res.status(200).json({ mensaje: "Registro guardado exitosamente" });
-  } catch (err) {
+    return res.json({ success: true, message: "Evento guardado correctamente" });
+
+  } catch (error) {
     await t.rollback();
-    console.error("Error al guardar evento:", err);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: error.message });
   }
 }

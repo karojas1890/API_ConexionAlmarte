@@ -207,11 +207,11 @@ export async function ValidateSecurityQuestions(req, res) {
     }
 
     // Enviar correo con el código de verificación
-    //  await emailService.SendVerificationCodeCredentials({ 
-    //   mail: correo,
-    //   username: nombre,  
-    //   code: codigo6digitos
-    // });
+     await emailService.SendVerificationCodeCredentials({ 
+      mail: correo,
+      username: nombre,  
+      code: codigo6digitos
+    });
       
     
 

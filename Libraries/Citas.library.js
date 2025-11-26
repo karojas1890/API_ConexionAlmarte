@@ -8,11 +8,12 @@ import { registrarAuditoria } from "../Services/auditoria.service.js";
 export async function crearCita(req, res) {
   try {
     const data = req.body;
-    
 
     // Validar campos obligatorios
-    if (!data.usuario || !data.servicio || !data.iddisponibilidad) {
-      return res.status(400).json({ error: "Faltan datos obligatorios" });
+    const requiredFields = ["usuario", "servicio", "iddisponibilidad", "paciente", "correoPaciente", "terapeutaNombre", "terapeutaApellido", "correoTerapeuta"];
+    const missing = requiredFields.filter(f => !data[f]);
+    if (missing.length) {
+      return res.status(400).json({ error: `Faltan datos obligatorios: ${missing.join(", ")}` });
     }
 
     const estado = data.estado ?? 0;
@@ -32,46 +33,33 @@ export async function crearCita(req, res) {
       }
     );
 
-    // Buscar disponibilidad
+    // Obtener disponibilidad
     const disponibilidad = await Disponibilidad.findByPk(data.iddisponibilidad);
     if (!disponibilidad) {
       return res.status(201).json({ message: "Cita creada, pero no se encontró la disponibilidad." });
     }
-
-    // Buscar servicio
-    const servicio = await Servicios.findByPk(data.servicio);
-    if (!servicio) {
+    console.log(disponibilidad)
+    // Obtener servicio
+    const servicioObj = await Servicios.findByPk(data.servicio);
+    if (!servicioObj) {
       return res.status(404).json({ message: "Servicio no encontrado." });
     }
-
-    const nombreservicio = servicio.nombreservicio;
-
-    // Tomar datos de sesión
-    const correoTerapeuta = req.session.user?.correo_terapeuta;
-    const paciente = req.session.user?.nombre;
-    const fecha = `${disponibilidad.fecha} de ${disponibilidad.horainicio} a ${disponibilidad.horafin}`;
-   const terapeutaNombre = req.session.user?.terapeuta_nombre;
-   const terapeutaApellido = req.session.user?.terapeuta_apellido1;
-   const correoPaciente = req.session.user?.correo;
-
-
-
-
-
+    const nombreservicio = servicioObj.nombreservicio;
+    console.log(disponibilidad,data.correoPaciente,data.correoTerapeuta,nombreservicio)
     // Enviar correos
     await emailService.SendNewAppointment({
-      mail: correoTerapeuta,
-      pacient: paciente,
-      date: fecha,
+      mail: data.correoTerapeuta,
+      pacient: data.paciente,
+      date: `${disponibilidad.fecha} de ${disponibilidad.horainicio} a ${disponibilidad.horafin}`,
       nombreServicio: nombreservicio
     });
 
     await emailService.SendNewAppointmentPacient({
-      mail: correoPaciente,
-      pacient: paciente,
-      date: fecha,
+      mail: data.correoPaciente,
+      pacient: data.paciente,
+      date: `${disponibilidad.fecha} de ${disponibilidad.horainicio} a ${disponibilidad.horafin}`,
       nombreServicio: nombreservicio,
-      nombreTerapeuta: `${terapeutaNombre} ${terapeutaApellido}`
+      nombreTerapeuta: `${data.terapeutaNombre} ${data.terapeutaApellido}`
     });
 
     // Registrar auditoría
@@ -79,10 +67,9 @@ export async function crearCita(req, res) {
       identificacion_consultante: data.usuario,
       tipo_actividad: 2,
       descripcion: "Cita reservada",
-      datos_modificados: { servicio: data.servicio, hora: fecha },
+      datos_modificados: { servicio: data.servicio, hora: `${disponibilidad.fecha} de ${disponibilidad.horainicio} a ${disponibilidad.horafin}` },
       exito: true
     });
-
     return res.status(201).json({
       message: "Cita creada exitosamente",
       cita: {
